@@ -1,6 +1,7 @@
 const express = require("express");
 require('dotenv').config();
 const bodyParser = require("body-parser");
+const webpush = require("web-push");
 const { initializeApp } = require("firebase/app");
 const { getFirestore, collection, addDoc } = require("firebase/firestore");
 const cors = require("cors");
@@ -53,5 +54,43 @@ app.post("/api/task", async (req, res) => {
     res.status(500).send({ success: false });
   }
 });
+
+// ======== WEB PUSH ========
+webpush.setVapidDetails(
+  'mailto:tuemail@ejemplo.com',
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
+);
+
+let subscriptions = [];
+
+// Ruta para registrar suscripciones desde el front
+app.post("/api/subscribe", (req, res) => {
+  const subscription = req.body;
+  subscriptions.push(subscription);
+  console.log("Nueva suscripción:", subscription);
+  res.status(201).json({ message: "Suscripción registrada" });
+});
+
+// Ruta para enviar notificaciones de prueba
+app.post("/api/notify", async (req, res) => {
+  const payload = JSON.stringify({
+    title: "Notificación desde el backend",
+    body: "Esta es una notificación de prueba.",
+    url: "/"
+  });
+
+  const sendPromises = subscriptions.map(sub =>
+    webpush.sendNotification(sub, payload).catch(err => console.error(err))
+  );
+
+  await Promise.all(sendPromises);
+  res.json({ message: "Notificaciones enviadas" });
+});
+
+app.get("/api/vapid-public-key", (req, res) => {
+  res.json({ publicKey: process.env.VAPID_PUBLIC_KEY });
+});
+
 
 app.listen(3001, () => console.log("Servidor corriendo en http://localhost:3001"));
