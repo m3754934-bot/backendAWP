@@ -75,8 +75,8 @@ app.post("/api/subscribe", (req, res) => {
 // Ruta para enviar notificaciones de prueba
 app.post("/api/notify", async (req, res) => {
   const payload = JSON.stringify({
-    title: "Notificación desde el backend",
-    body: "Esta es una notificación de prueba.",
+    title: "Hola! Tienes una notificación.",
+    body: "Da click para abrir la app.",
     url: "/"
   });
 
