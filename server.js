@@ -1,5 +1,13 @@
 const express = require("express");
 require('dotenv').config();
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 const bodyParser = require("body-parser");
 const webpush = require("web-push");
 const { initializeApp } = require("firebase/app");
@@ -92,5 +100,21 @@ app.get("/api/vapid-public-key", (req, res) => {
   res.json({ publicKey: process.env.VAPID_PUBLIC_KEY });
 });
 
+app.post("/api/upload-photo", async (req, res) => {
+  try {
+    const { imageBase64 } = req.body;
+
+    if (!imageBase64) return res.status(400).json({ error: "No se recibió la imagen" });
+
+    const result = await cloudinary.uploader.upload(imageBase64, {
+      folder: "pwa_tasks",
+    });
+
+    res.json({ url: result.secure_url });
+  } catch (err) {
+    console.error("Error subiendo a Cloudinary:", err);
+    res.status(500).json({ error: "Error subiendo la imagen" });
+  }
+});
 
 app.listen(3001, () => console.log("Servidor corriendo en http://localhost:3001"));
