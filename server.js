@@ -54,8 +54,15 @@ const db = getFirestore(firebaseApp);
 
 app.post("/api/task", async (req, res) => {
   try {
-    const { text, date } = req.body;
-    await addDoc(collection(db, "tasks"), { text, date });
+    const { text, date, location, photo, synced } = req.body;
+    await addDoc(collection(db, "tasks"), { 
+      text, 
+      date,
+      location: location || null,
+      photo: photo || null,
+      synced: synced || false
+    });
+    
     res.status(200).send({ success: true });
   } catch (err) {
     console.error(err);
